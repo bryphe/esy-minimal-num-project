@@ -1,0 +1,152 @@
+{
+  "hash": "79b86422c97871700358118c956a26aa",
+  "root": "esy-minimal-num-project@path:.",
+  "node": {
+    "ocaml@4.6.5": {
+      "record": {
+        "name": "ocaml",
+        "version": "4.6.5",
+        "source":
+          "archive:https://registry.npmjs.org/ocaml/-/ocaml-4.6.5.tgz#sha1:23b6d4dc36437f431c427953a5236447e7b51368",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": []
+    },
+    "esy-minimal-num-project@path:.": {
+      "record": {
+        "name": "esy-minimal-num-project",
+        "version": "path:.",
+        "source": "path:.",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": [ "@opam/num@opam:1.1", "ocaml@4.6.5" ]
+    },
+    "@opam/ocamlfind@opam:1.8.0": {
+      "record": {
+        "name": "@opam/ocamlfind",
+        "version": "opam:1.8.0",
+        "source": [
+          "archive:https://opam.ocaml.org/archives/ocamlfind.1.8.0+opam.tar.gz#md5:4d70eaf49e0f5f4d84257391088da0a2",
+          "archive:http://download.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b",
+          "archive:http://download2.camlcity.org/download/findlib-1.8.0.tar.gz#md5:a710c559667672077a93d34eb6a42e5b"
+        ],
+        "files": [
+          {
+            "name": "ocaml-stub",
+            "content":
+              "#!/bin/sh\n\nBINDIR=$(dirname \"$(command -v ocamlc)\")\n\"$BINDIR/ocaml\" -I \"$OCAML_TOPLEVEL_PATH\" \"$@\"\n"
+          },
+          {
+            "name": "ocamlfind.install",
+            "content":
+              "bin: [\n  \"src/findlib/ocamlfind\" {\"ocamlfind\"}\n  \"?src/findlib/ocamlfind_opt\" {\"ocamlfind\"}\n  \"?tools/safe_camlp4\"\n]\ntoplevel: [\"src/findlib/topfind\"]\n"
+          }
+        ],
+        "opam": {
+          "name": "ocamlfind",
+          "version": "1.8.0",
+          "opam":
+            "opam-version: \"1.2\"\nname: \"ocamlfind\"\nversion: \"1.8.0\"\nmaintainer: \"Thomas Gazagnaire <thomas@gazagnaire.org>\"\nauthors: \"Gerd Stolpmann <gerd@gerd-stolpmann.de>\"\nhomepage: \"http://projects.camlcity.org/projects/findlib.html\"\nbug-reports: \"https://gitlab.camlcity.org/gerd/lib-findlib/issues\"\ndepends: [\n  \"conf-m4\" {build}\n]\navailable: ocaml-version >= \"4.00.0\"\nbuild: [\n  [\n    \"./configure\"\n    \"-bindir\"\n    bin\n    \"-sitelib\"\n    lib\n    \"-mandir\"\n    man\n    \"-config\"\n    \"%{lib}%/findlib.conf\"\n    \"-no-custom\"\n    \"-no-topfind\" {preinstalled}\n  ]\n  [make \"all\"]\n  [make \"opt\"] {ocaml-native}\n]\ninstall: [\n  [make \"install\"]\n  [\"install\" \"-m\" \"0755\" \"ocaml-stub\" \"%{bin}%/ocaml\"] {preinstalled}\n]\nremove: [\n  [\"ocamlfind\" \"remove\" \"bytes\"]\n  [\n    \"./configure\"\n    \"-bindir\"\n    bin\n    \"-sitelib\"\n    lib\n    \"-mandir\"\n    man\n    \"-config\"\n    \"%{lib}%/findlib.conf\"\n    \"-no-topfind\" {preinstalled}\n  ]\n  [make \"uninstall\"]\n  [\"rm\" \"-f\" \"%{bin}%/ocaml\"] {preinstalled}\n]\ndev-repo: \"git+https://gitlab.camlcity.org/gerd/lib-findlib.git\"",
+          "override": {
+            "build": [
+              [
+                "./configure", "-bindir", "#{self.bin}", "-sitelib",
+                "#{self.lib}", "-mandir", "#{self.man}", "-config",
+                "#{self.lib}/findlib.conf", "-no-custom", "-no-topfind"
+              ],
+              [ "make", "all" ],
+              [ "make", "opt" ]
+            ],
+            "install": [
+              [ "make", "install" ],
+              [ "install", "-m", "0755", "ocaml-stub", "#{self.bin}/ocaml" ],
+              [ "mkdir", "-p", "#{self.toplevel}" ],
+              [
+                "install", "-m", "0644", "src/findlib/topfind",
+                "#{self.toplevel}/topfind"
+              ]
+            ],
+            "exportedEnv": {
+              "OCAML_TOPLEVEL_PATH": {
+                "val": "#{self.toplevel}",
+                "scope": "global"
+              }
+            }
+          }
+        }
+      },
+      "dependencies": [ "@esy-ocaml/substs@0.0.1", "@opam/conf-m4@opam:1" ]
+    },
+    "@opam/num@opam:1.1": {
+      "record": {
+        "name": "@opam/num",
+        "version": "opam:1.1",
+        "source": [
+          "archive:https://opam.ocaml.org/archives/num.1.1+opam.tar.gz#md5:1567cb86d261a416147807d830c22520",
+          "archive:https://github.com/ocaml/num/archive/v1.1.tar.gz#md5:710cbe18b144955687a03ebab439ff2b"
+        ],
+        "files": [
+          {
+            "name": "findlib-install.patch",
+            "content":
+              "From 7688bb4fea24463c92e9c4870acc08495a4c77cb Mon Sep 17 00:00:00 2001\nFrom: David Allsopp <david.allsopp@metastack.com>\nDate: Wed, 10 Jan 2018 15:20:46 +0000\nSubject: [PATCH] Provide findlib-install target\n\nAllows installing the entire library using ocamlfind.\n---\n Makefile     | 10 +++++++++-\n src/META     | 17 -----------------\n src/META.in  | 19 +++++++++++++++++++\n src/Makefile | 17 +++++++++++++++--\n 4 files changed, 43 insertions(+), 20 deletions(-)\n delete mode 100644 src/META\n create mode 100644 src/META.in\n\ndiff --git a/Makefile b/Makefile\nindex 6a5d08f..b40e588 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -14,8 +14,16 @@ install:\n \t$(MAKE) -C src install\n \t$(MAKE) -C toplevel install\n \n+findlib-install:\n+\t$(MAKE) -C src findlib-install\n+\t$(MAKE) -C toplevel install\n+\n uninstall:\n \t$(MAKE) -C src uninstall\n \t$(MAKE) -C toplevel uninstall\n \n-.PHONY: all test clean install uninstall\n+findlib-uninstall:\n+\t$(MAKE) -C src findlib-uninstall\n+\t$(MAKE) -C toplevel uninstall\n+\n+.PHONY: all test clean install uninstall findlib-install findlib-uninstall\ndiff --git a/src/META b/src/META\ndeleted file mode 100644\nindex 66ac170..0000000\n--- a/src/META\n+++ /dev/null\n@@ -1,17 +0,0 @@\n-# This META is the one provided by findlib when the \"num\" library was\n-# part of the core OCaml distribution.  For backward compatibility,\n-# it installs into OCaml's standard library directory, not in a subdirectory\n-\n-requires = \"num.core\"\n-requires(toploop) = \"num.core,num-top\"\n-version = \"1.0\"\n-description = \"Arbitrary-precision rational arithmetic\"\n-package \"core\" (\n-  directory = \"^\"\n-  version = \"1.0\"\n-  browse_interfaces = \"\"\n-  archive(byte) = \"nums.cma\"\n-  archive(native) = \"nums.cmxa\"\n-  plugin(byte) = \"nums.cma\"\n-  plugin(native) = \"nums.cmxs\"\n-)\ndiff --git a/src/META.in b/src/META.in\nnew file mode 100644\nindex 0000000..b5678b7\n--- /dev/null\n+++ b/src/META.in\n@@ -0,0 +1,19 @@\n+# This META is the one provided by findlib when the \"num\" library was\n+# part of the core OCaml distribution.  For backward compatibility,\n+# it is installed into OCaml's standard library directory. If the\n+# directory line below is removed, then it's installed in a\n+# subdirectory, as normal for a findlib package.\n+\n+requires = \"num.core\"\n+requires(toploop) = \"num.core,num-top\"\n+version = \"1.0\"\n+description = \"Arbitrary-precision rational arithmetic\"\n+package \"core\" (\n+  directory = \"^\"\n+  version = \"1.0\"\n+  browse_interfaces = \"\"\n+  archive(byte) = \"nums.cma\"\n+  archive(native) = \"nums.cmxa\"\n+  plugin(byte) = \"nums.cma\"\n+  plugin(native) = \"nums.cmxs\"\n+)\ndiff --git a/src/Makefile b/src/Makefile\nindex 97dc074..ff271fe 100644\n--- a/src/Makefile\n+++ b/src/Makefile\n@@ -80,21 +80,34 @@ endif\n ifeq \"$(NATDYNLINK)\" \"true\"\n TOINSTALL+=nums.cmxs\n endif\n+ifeq \"$(SUPPORTS_SHARED_LIBRARIES)\" \"true\"\n TOINSTALL_STUBS=dllnums.$(SO)\n+else\n+TOINSTALL_STUBS=\n+endif\n \n install:\n+\tcp META.in META\n \t$(OCAMLFIND) install num META\n+\trm -f META\n \t$(INSTALL_DATA) $(TOINSTALL) $(STDLIBDIR)\n ifeq \"$(SUPPORTS_SHARED_LIBRARIES)\" \"true\"\n \t$(INSTALL_DLL) $(TOINSTALL_STUBS) $(STDLIBDIR)/stublibs\n endif\n \n-uninstall:\n+findlib-install:\n+\tgrep -Fv '^' META.in > META\n+\t$(OCAMLFIND) install num META $(TOINSTALL) $(TOINSTALL_STUBS)\n+\trm -f META\n+\n+findlib-uninstall:\n+\t$(OCAMLFIND) remove num\n+\n+uninstall: findlib-uninstall\n \tcd $(STDLIBDIR) && rm -f $(TOINSTALL)\n ifeq \"$(SUPPORTS_SHARED_LIBRARIES)\" \"true\"\n \tcd $(STDLIBDIR)/stublibs && rm -f $(TOINSTALL_STUBS) \n endif\n-\t$(OCAMLFIND) remove num\n \n clean:\n \trm -f *.cm[ioxta] *.cmx[as] *.cmti *.$(O) *.$(A) *.$(SO)\n-- \n2.14.1\n\n"
+          },
+          {
+            "name": "installation-warning.patch",
+            "content":
+              "From db8d748b2cad0adc2698e9fcf28727083a711bae Mon Sep 17 00:00:00 2001\nFrom: David Allsopp <david.allsopp@metastack.com>\nDate: Wed, 24 Jan 2018 16:01:56 +0000\nSubject: [PATCH] Warn about installations broken by previous faulty package\n\n---\n Makefile | 33 +++++++++++++++++++++++++++++++++\n 1 file changed, 33 insertions(+)\n\ndiff --git a/Makefile b/Makefile\nindex b40e588..d4dcd70 100644\n--- a/Makefile\n+++ b/Makefile\n@@ -14,9 +14,42 @@ install:\n \t$(MAKE) -C src install\n \t$(MAKE) -C toplevel install\n \n+OCAMLFIND_DIR:=$(dir $(shell command -v ocamlfind 2>/dev/null))\n+OCAMLC_DIR:=$(dir $(shell command -v ocamlc 2>/dev/null))\n+NUM_INSTALLED:=$(shell ocamlfind query num 2>/dev/null)\n+\n+ifeq ($(NUM_INSTALLED),)\n+# The num findlib package is not already present - wohoo!\n+OUR_FAULT=no\n+else\n+ifeq ($(OCAMLFIND_DIR),$(OCAMLC_DIR))\n+# The num findlib package is present, but ocamlc and ocamlfind are in the\n+# same place, which means that either we're looking at a system-installed\n+# ocamlfind (which isn't supported), or the user has done something else\n+# nefarious and doesn't deserve our sympathy (or, at least, our potentially\n+# unhelpful advice)\n+OUR_FAULT=no\n+else\n+# The num findlib package package is present, and ocamlc and ocamlfind reside\n+# in different directories, which means that we're almost certainly looking at\n+# a system switch which has been damaged by a previous num package installation\n+# on an OS which didn't protect the system lib directory.\n+OUR_FAULT=probably\n+endif\n+endif\n+\n findlib-install:\n+ifeq ($(OUR_FAULT),no)\n \t$(MAKE) -C src findlib-install\n \t$(MAKE) -C toplevel install\n+else\n+\t@echo \"\\033[0;31m[ERROR]\\033[m It appears that the num library was previously installed to your system\"\n+\t@echo \"        compiler's lib directory, probably by a faulty opam package.\"\n+\t@echo \"        You will need to remove arith_flags.*, arith_status.*, big_int.*,\"\n+\t@echo \"        int_misc.*, nat.*, num.*, ratio.*, nums.*, libnums.* and\"\n+\t@echo \"        stublibs/dllnums.* from $(shell ocamlc -where).\"\n+\t@false\n+endif\n \n uninstall:\n \t$(MAKE) -C src uninstall\n-- \n2.14.1\n\n"
+          }
+        ],
+        "opam": {
+          "name": "num",
+          "version": "1.1",
+          "opam":
+            "opam-version: \"1.2\"\nname: \"num\"\nversion: \"1.1\"\nmaintainer: \"Xavier Leroy <xavier.leroy@inria.fr>\"\nauthors: [\"Valérie Ménissier-Morain\" \"Pierre Weis\" \"Xavier Leroy\"]\nlicense: \"LGPL 2.1 with OCaml linking exception\"\nhomepage: \"https://github.com/ocaml/num/\"\nbug-reports: \"https://github.com/ocaml/num/issues\"\ndepends: [\n  \"ocamlfind\" {build & >= \"1.7.3\"}\n]\nconflicts: [\"base-num\"]\navailable: ocaml-version >= \"4.06.0\"\nbuild: make\ninstall: [\n  make\n  \"install\" {!preinstalled}\n  \"findlib-install\" {preinstalled}\n]\nremove: [\n  make\n  \"uninstall\" {!preinstalled}\n  \"findlib-uninstall\" {preinstalled}\n]\npatches: [\"findlib-install.patch\" \"installation-warning.patch\"]\ndev-repo: \"git+https://github.com/ocaml/num.git\"",
+          "override": {
+            "build": [ [ "make" ] ],
+            "install": [ [ "make", "findlib-install" ] ],
+            "exportedEnv": {
+              "CAML_LD_LIBRARY_PATH": {
+                "val":
+                  "#{self.install / 'lib' / 'num' : $CAML_LD_LIBRARY_PATH}",
+                "scope": "global"
+              }
+            }
+          }
+        }
+      },
+      "dependencies": [
+        "@esy-ocaml/substs@0.0.1", "@opam/ocamlfind@opam:1.8.0"
+      ]
+    },
+    "@opam/conf-m4@opam:1": {
+      "record": {
+        "name": "@opam/conf-m4",
+        "version": "opam:1",
+        "source": "no-source:",
+        "files": [],
+        "opam": {
+          "name": "conf-m4",
+          "version": "1",
+          "opam":
+            "opam-version: \"1.2\"\nname: \"conf-m4\"\nversion: \"1\"\nmaintainer: \"tim@gfxmonk.net\"\nlicense: \"GPL-3\"\nhomepage: \"http://www.gnu.org/software/m4/m4.html\"\nbug-reports: \"https://github.com/ocaml/opam-repository/issues\"\nbuild: [\"sh\" \"-exc\" \"echo | m4\"]\ndepexts: [\n  [\"m4\"] {\"debian\"}\n  [\"m4\"] {\"ubuntu\"}\n  [\"m4\"] {\"fedora\"}\n  [\"m4\"] {\"rhel\"}\n  [\"m4\"] {\"centos\"}\n  [\"m4\"] {\"alpine\"}\n  [\"m4\"] {\"nixpkgs\"}\n  [\"m4\"] {\"opensuse\"}\n  [\"m4\"] {\"oraclelinux\"}\n  [\"m4\"] {\"archlinux\"}\n]",
+          "override": null
+        }
+      },
+      "dependencies": [ "@esy-ocaml/substs@0.0.1" ]
+    },
+    "@esy-ocaml/substs@0.0.1": {
+      "record": {
+        "name": "@esy-ocaml/substs",
+        "version": "0.0.1",
+        "source":
+          "archive:https://registry.npmjs.org/@esy-ocaml/substs/-/substs-0.0.1.tgz#sha1:59ebdbbaedcda123fc7ed8fb2b302b7d819e9a46",
+        "files": [],
+        "opam": null
+      },
+      "dependencies": []
+    }
+  }
+}
